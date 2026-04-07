@@ -3,6 +3,8 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { IOrderRepository } from './repository/order.repository';
@@ -11,10 +13,13 @@ import { User } from '../user/entity/user.entity';
 import { Product } from '../product/entity/product.entity';
 import { OrderItem } from './entity/order-items.entity';
 import { Order } from './entity/order.entity';
-import { OrderMapper } from './common/order.mapper';
+import { OrderMapper } from './common/order-response.mapper';
+import { OrderBuilder, OrderItemBuilder } from './common/builders';
 
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
+
   constructor(
     @Inject(IOrderRepository)
     private repository: IOrderRepository,
@@ -22,61 +27,72 @@ export class OrderService {
   ) {}
 
   async findAll(): Promise<OrderResponseDto[]> {
-    const orders: Order[] = await this.repository.findAll();
-    return OrderMapper.toResponseList(orders);
+    try {
+      const orders: Order[] = await this.repository.findAll();
+      return OrderMapper.toResponseList(orders);
+    } catch (error) {
+      this.logger.error('Error on find all orders.', error);
+      throw new InternalServerErrorException('Error on find all orders.');
+    }
   }
 
   async create(
     userId: string,
     itemsData: { productId: string; quantity: number }[],
   ): Promise<OrderResponseDto> {
-    // A transação DEVE começar aqui no Service para garantir o estoque
-    return await this.dataSource.transaction(async (manager) => {
-      // 1. Buscas e Validações (User e Products) usando o 'manager'
-      const user = await manager.findOne(User, { where: { id: userId } });
-      if (!user) throw new NotFoundException('User not found');
+    try {
+      return await this.dataSource.transaction(async (manager) => {
+        const user = await manager.findOne(User, { where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
 
-      let totalOrderPrice = 0;
-      const orderItems: OrderItem[] = [];
+        let totalOrderPrice = 0;
+        const orderItems: OrderItem[] = [];
 
-      for (const item of itemsData) {
-        const product = await manager.findOne(Product, {
-          where: { id: item.productId },
-        });
-        if (!product)
-          throw new NotFoundException(`Product ${item.productId} not found`);
+        for (const item of itemsData) {
+          const product = await manager.findOne(Product, {
+            where: { id: item.productId },
+          });
+          if (!product)
+            throw new NotFoundException(`Product ${item.productId} not found`);
 
-        if (product.stockQuantity < item.quantity) {
-          throw new BadRequestException(
-            `Insufficient stock for ${product.name}`,
-          );
+          if (product.stockQuantity < item.quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for ${product.name}`,
+            );
+          }
+
+          product.stockQuantity -= item.quantity;
+          await manager.save(product);
+
+          const orderItem = new OrderItemBuilder()
+            .withProduct(product)
+            .withQuantity(item.quantity)
+            .withPriceAtPurchase(product.price)
+            .build();
+
+          totalOrderPrice += Number(product.price) * item.quantity;
+          orderItems.push(orderItem);
         }
 
-        // 2. Atualiza estoque no banco
-        product.stockQuantity -= item.quantity;
-        await manager.save(product);
+        const order = new OrderBuilder()
+          .withUser(user)
+          .withItems(orderItems)
+          .withTotalPrice(totalOrderPrice)
+          .withStatus('PAID')
+          .build();
 
-        // 3. Monta o item do pedido
-        const orderItem = new OrderItem();
-        orderItem.product = product;
-        orderItem.quantity = item.quantity;
-        orderItem.priceAtPurchase = product.price;
-
-        totalOrderPrice += Number(product.price) * item.quantity;
-        orderItems.push(orderItem);
+        const savedOrder = await this.repository.create(order, manager);
+        return OrderMapper.toResponse(savedOrder);
+      });
+    } catch (error) {
+      this.logger.error('Error on create order.', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
-
-      // 4. Monta a Entidade Order
-      const order = new Order();
-      order.user = user;
-      order.items = orderItems;
-      order.totalPrice = totalOrderPrice;
-      order.status = 'PAID';
-
-      // 5. CHAMA O REPOSITÓRIO PASSANDO O MANAGER
-      // O repositório fará o salvamento e o mapeamento manual para DTO
-      const savedOrder = await this.repository.create(order, manager);
-      return OrderMapper.toResponse(savedOrder);
-    });
+      throw new InternalServerErrorException('Error on create order.');
+    }
   }
 }

@@ -1,45 +1,75 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { IProductRepository } from './repository/product.repository';
-import { ProductMapper } from './common/product.mapper';
+import { ProductMapper } from './common/product-response.mapper';
 import { Product } from './entity/product.entity';
 
 @Injectable()
 export class ProductService {
+  private readonly logger = new Logger(ProductService.name);
+
   constructor(
     @Inject(IProductRepository)
     private readonly repository: IProductRepository,
   ) {}
 
   async findAll(): Promise<ProductResponseDto[]> {
-    return await this.repository.findAll();
+    try {
+      const products = await this.repository.findAll();
+      return ProductMapper.toResponseList(products);
+    } catch (error) {
+      this.logger.error('Error on find all products.', error);
+      throw new InternalServerErrorException('Error on find all products.');
+    }
   }
 
   async create(product: Product): Promise<ProductResponseDto> {
-    const newProduct = await this.repository.create(product);
-    return ProductMapper.toResponse(newProduct);
+    try {
+      const newProduct = await this.repository.create(product);
+      return ProductMapper.toResponse(newProduct);
+    } catch (error) {
+      this.logger.error('Error on create product.', error);
+      throw new InternalServerErrorException('Error on create product.');
+    }
   }
 
   async update(id: string, product: Product): Promise<void> {
-    const existingProduct = await this.repository.findById(id);
+    try {
+      const existingProduct = await this.repository.findById(id);
 
-    if (!existingProduct) {
-      throw new NotFoundException(`Product with ID ${id} not found. `);
+      if (!existingProduct) {
+        throw new NotFoundException(`Product with ID ${id} not found. `);
+      }
+      await this.repository.update(id, product);
+    } catch (error) {
+      this.logger.error(`Error on update product with ID ${id}.`, error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Error on update product.`);
     }
-    await this.repository.update(id, product);
   }
 
   async delete(id: string): Promise<void> {
-    const existingProduct = await this.repository.findById(id);
+    try {
+      const existingProduct = await this.repository.findById(id);
 
-    if (!existingProduct) {
-      throw new BadRequestException(`Product with ID ${id} not found.`);
+      if (!existingProduct) {
+        throw new NotFoundException(`Product with ID ${id} not found.`);
+      }
+      await this.repository.delete(id);
+    } catch (error) {
+      this.logger.error(`Error on delete product with ID ${id}.`, error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Error on delete product.`);
     }
-    await this.repository.delete(id);
   }
 }
