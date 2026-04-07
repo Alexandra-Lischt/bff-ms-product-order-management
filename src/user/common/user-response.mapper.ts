@@ -12,7 +12,7 @@ export class UserMapper {
     return response;
   }
 
-  static toResponseData(user: User): UserResponseDto {
-    return this.toResponse(user);
+  static toResponseData(users: User[]): UserResponseDto[] {
+    return users.map((user) => this.toResponse(user));
   }
 }
