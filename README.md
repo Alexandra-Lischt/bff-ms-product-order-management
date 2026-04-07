@@ -1,4 +1,4 @@
-# BFB Product Management Microservice
+# BFF Product Order Management Microservice
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
@@ -20,10 +20,12 @@
 
 ## 📖 Sobre
 
-O BFF Product Order Management é um microserviço desenvolvido com NestJS que gerencia:
+O BFF Product Order Management é um monolito desenvolvido com NestJS que gerencia:
 - **Usuários**: Criação e autenticação de usuários
 - **Produtos**: CRUD de produtos com controle de estoque
 - **Pedidos**: Gerenciamento de pedidos com transações ACID
+
+Observação: Este monolito deveria ser divido em microserviços de acordo com cada responsabilidade e contexto especializado.
 
 ## 🛠 Tecnologias
 
@@ -48,8 +50,8 @@ O BFF Product Order Management é um microserviço desenvolvido com NestJS que g
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/bff-ms-product-order-management.git
-cd bff-ms-product-order-management
+git clone https://github.com/seu-usuario/bff-product-order-management.git
+cd bff-product-order-management
 ```
 
 ### 2. Instale as dependências
@@ -110,7 +112,7 @@ psql -h localhost -p 5432 -U postgres -d bfb_product_management
 ```bash
 # Pare o container e remova o volume antigo
 docker-compose down
-docker volume rm bff-ms-product-order-management_pgdata
+docker volume rm bff-product-order-management_pgdata
 
 # Reinicie o container
 docker-compose up -d
