@@ -8,8 +8,8 @@ import {
 import { IUserRepository } from './repository/user.repository';
 import * as bcrypt from 'bcrypt';
 import { UserResponseDto } from './dto/user-response.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserMapper } from './common/user-response.mapper';
-import { User } from './entity/user.entity';
 
 @Injectable()
 export class UserService {
@@ -20,7 +20,7 @@ export class UserService {
     private readonly repository: IUserRepository,
   ) {}
 
-  async create(user: User): Promise<UserResponseDto> {
+  async create(user: CreateUserDto): Promise<UserResponseDto> {
     try {
       const userExists = await this.repository.findByEmail(user.email);
 
@@ -42,6 +42,7 @@ export class UserService {
       if (error instanceof UnprocessableEntityException) {
         throw error;
       }
+      console.log(error);
       throw new BadRequestException('Error on create user.');
     }
   }

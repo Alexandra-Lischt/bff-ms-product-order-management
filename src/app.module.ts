@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { loggerConfig } from './config/logger.config';
-import { databaseConfig } from './config/database.config';
+import { AppDataSource } from './config/database.config';
 
 import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
@@ -16,7 +16,10 @@ import { LoggerModule } from 'nestjs-pino';
   imports: [
     LoggerModule.forRoot(loggerConfig),
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync(databaseConfig),
+    TypeOrmModule.forRoot({
+      ...AppDataSource.options,
+      autoLoadEntities: true,
+    }),
     AuthModule,
     OrderModule,
     ProductModule,

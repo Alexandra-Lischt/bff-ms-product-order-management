@@ -82,7 +82,10 @@ describe('OrderController', () => {
       const result = await controller.create(orderInput, req);
 
       expect(result).toEqual(mockOrderResponse);
-      expect(service.create).toHaveBeenCalledWith('user-uuid', orderInput.items);
+      expect(service.create).toHaveBeenCalledWith(
+        'user-uuid',
+        orderInput.items,
+      );
     });
 
     it('should propagate errors from the service', async () => {
@@ -92,9 +95,7 @@ describe('OrderController', () => {
 
       const req = { user: { sub: 'user-uuid' } };
 
-      mockOrderService.create.mockRejectedValue(
-        new Error('Product not found'),
-      );
+      mockOrderService.create.mockRejectedValue(new Error('Product not found'));
 
       await expect(controller.create(orderInput, req)).rejects.toThrow(
         'Product not found',

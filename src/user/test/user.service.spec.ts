@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../user.service';
 import { IUserRepository } from '../repository/user.repository';
-import { User } from '../entity/user.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
@@ -47,7 +47,7 @@ describe('UserService', () => {
       name: 'John',
       email: 'john@email.com',
       password: '123456',
-    } as User;
+    } as CreateUserDto;
 
     const savedUser = {
       id: 'uuid-123',
@@ -56,7 +56,7 @@ describe('UserService', () => {
       password: 'hashed-password',
       createdAt: new Date('2024-01-01'),
       orders: [],
-    } as User;
+    } as CreateUserDto;
 
     it('should create a user successfully', async () => {
       mockRepository.findByEmail.mockResolvedValue(null);
@@ -92,9 +92,7 @@ describe('UserService', () => {
     });
 
     it('should throw BadRequestException on unexpected error', async () => {
-      mockRepository.findByEmail.mockRejectedValue(
-        new Error('Database error'),
-      );
+      mockRepository.findByEmail.mockRejectedValue(new Error('Database error'));
 
       await expect(service.create(userInput)).rejects.toThrow(
         BadRequestException,

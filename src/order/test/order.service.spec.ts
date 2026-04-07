@@ -179,9 +179,9 @@ describe('OrderService', () => {
         return cb(mockManager);
       });
 
-      await expect(
-        service.create('user-uuid', itemsData),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.create('user-uuid', itemsData)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException when insufficient stock', async () => {
@@ -193,16 +193,18 @@ describe('OrderService', () => {
       });
 
       await expect(
-        service.create('user-uuid', [{ productId: 'product-uuid', quantity: 5 }]),
+        service.create('user-uuid', [
+          { productId: 'product-uuid', quantity: 5 },
+        ]),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw InternalServerErrorException on unexpected error', async () => {
       mockDataSource.transaction.mockRejectedValue(new Error('DB error'));
 
-      await expect(
-        service.create('user-uuid', itemsData),
-      ).rejects.toThrow(InternalServerErrorException);
+      await expect(service.create('user-uuid', itemsData)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 });

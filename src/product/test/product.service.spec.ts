@@ -6,6 +6,7 @@ import {
 import { ProductService } from '../product.service';
 import { IProductRepository } from '../repository/product.repository';
 import { Product } from '../entity/product.entity';
+import { UpdateProductDto } from '../dto/update-product.dto';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -115,7 +116,9 @@ describe('ProductService', () => {
       mockRepository.findById.mockResolvedValue(mockProduct);
       mockRepository.update.mockResolvedValue(undefined);
 
-      await service.update('product-uuid', { name: 'Updated' } as Product);
+      await service.update('product-uuid', {
+        name: 'Updated',
+      } as UpdateProductDto);
 
       expect(repository.findById).toHaveBeenCalledWith('product-uuid');
       expect(repository.update).toHaveBeenCalledWith('product-uuid', {
@@ -126,9 +129,9 @@ describe('ProductService', () => {
     it('should throw NotFoundException when product does not exist', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
-      await expect(
-        service.update('invalid-id', {} as Product),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.update('invalid-id', {} as Product)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(repository.update).not.toHaveBeenCalled();
     });
 

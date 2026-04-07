@@ -8,7 +8,8 @@ import {
 import { ProductResponseDto } from './dto/product-response.dto';
 import { IProductRepository } from './repository/product.repository';
 import { ProductMapper } from './common/product-response.mapper';
-import { Product } from './entity/product.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -29,7 +30,7 @@ export class ProductService {
     }
   }
 
-  async create(product: Product): Promise<ProductResponseDto> {
+  async create(product: CreateProductDto): Promise<ProductResponseDto> {
     try {
       const newProduct = await this.repository.create(product);
       return ProductMapper.toResponse(newProduct);
@@ -39,7 +40,7 @@ export class ProductService {
     }
   }
 
-  async update(id: string, product: Product): Promise<void> {
+  async update(id: string, product: UpdateProductDto): Promise<void> {
     try {
       const existingProduct = await this.repository.findById(id);
 

@@ -1,20 +1,17 @@
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig();
 
-export const databaseConfig: TypeOrmModuleAsyncOptions = {
-  inject: [ConfigService],
-  useFactory: (configService: ConfigService) => ({
-    type: 'postgres',
-    host: configService.get<string>('DB_HOST'),
-    port: configService.get<number>('DB_PORT'),
-    username: configService.get<string>('DB_USERNAME'),
-    password: configService.get<string>('DB_PASSWORD'),
-    database: configService.get<string>('DB_DATABASE'),
-    autoLoadEntities: true,
-    synchronize: false,
-    logging: configService.get<string>('NODE_ENV') === 'development',
-  }),
-};
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+  synchronize: false,
+  logging: process.env.NODE_ENV === 'development',
+});

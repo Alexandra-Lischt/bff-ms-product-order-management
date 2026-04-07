@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { IUserRepository } from './user.repository';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 @Injectable()
 export class UserTypeOrmRepository implements IUserRepository {
@@ -19,7 +20,7 @@ export class UserTypeOrmRepository implements IUserRepository {
     });
   }
 
-  async create(user: User): Promise<User> {
+  async create(user: CreateUserDto): Promise<User> {
     const createdUser = this.ormRepository.create(user);
     return await this.ormRepository.save(createdUser);
   }

@@ -27,7 +27,8 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Product } from './entity/product.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @ApiTags('Product')
 @ApiBearerAuth()
@@ -46,7 +47,7 @@ export class ProductController {
   @Post()
   @ApiOperation({ summary: 'Create product.' })
   @ApiCreatedResponse({ type: ProductResponseDto })
-  async create(@Body() product: Product): Promise<ProductResponseDto> {
+  async create(@Body() product: CreateProductDto): Promise<ProductResponseDto> {
     return await this.productService.create(product);
   }
 
@@ -57,7 +58,7 @@ export class ProductController {
   @ApiNotFoundResponse({ description: 'Product not found.' })
   async update(
     @Param('id') id: string,
-    @Body() product: Product,
+    @Body() product: UpdateProductDto,
   ): Promise<void> {
     return await this.productService.update(id, product);
   }

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../user.controller';
 import { UserService } from '../user.service';
-import { User } from '../entity/user.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 
 describe('UserController', () => {
@@ -41,7 +41,7 @@ describe('UserController', () => {
         name: 'John',
         email: 'john@email.com',
         password: '123456',
-      } as User;
+      } as CreateUserDto;
 
       const expectedResponse: UserResponseDto = {
         id: 'uuid-123',
@@ -64,7 +64,7 @@ describe('UserController', () => {
         name: 'John',
         email: 'john@email.com',
         password: '123456',
-      } as User;
+      } as CreateUserDto;
 
       mockUserService.create.mockRejectedValue(
         new Error('User already exists.'),

@@ -4,6 +4,7 @@ import { ProductService } from '../product.service';
 import { ProductResponseDto } from '../dto/product-response.dto';
 import { Product } from '../entity/product.entity';
 import { AuthGuard } from '../../auth/auth.guard';
+import { CreateProductDto } from '../dto/create-product.dto';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -82,7 +83,7 @@ describe('ProductController', () => {
         description: 'Keyboard Logitech',
         price: 39.8,
         stockQuantity: 5,
-      } as Product;
+      } as CreateProductDto;
 
       mockProductService.create.mockResolvedValue(mockProduct);
 

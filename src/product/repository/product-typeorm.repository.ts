@@ -4,6 +4,7 @@ import { IProductRepository } from './product.repository';
 import { Product } from '../entity/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UpdateProductDto } from '../dto/update-product.dto';
 
 @Injectable()
 export class ProductTypeOrmRepository implements IProductRepository {
@@ -25,7 +26,7 @@ export class ProductTypeOrmRepository implements IProductRepository {
     return this.ormRepository.save(createdProduct);
   }
 
-  async update(id: string, product: Product): Promise<void> {
+  async update(id: string, product: UpdateProductDto): Promise<void> {
     await this.ormRepository.update({ id }, product);
   }
 
